@@ -4,56 +4,25 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
     && apt-get update -q \
-    && apt-get install -qq -y curl git \
-        libcurl3-dev \
-        libonig-dev \
-        libfreetype6-dev \
-        libjpeg62-turbo-dev \
-        libpng-dev \
-        libxslt-dev \
-        unzip zip \
-    && apt-get clean
+    && apt-get install -qq -y curl nginx libcurl3-dev
 
-# Install PHP extensions.
-RUN docker-php-ext-install -j$(nproc) gd
-RUN docker-php-ext-install -j$(nproc) pdo pdo_mysql
+# Install PHP curl extensions.
 RUN docker-php-ext-install -j$(nproc) curl 
-RUN docker-php-ext-install -j$(nproc) exif
-RUN docker-php-ext-install -j$(nproc) pcntl
-RUN docker-php-ext-install -j$(nproc) opcache
-RUN docker-php-ext-install -j$(nproc) xsl
-RUN docker-php-ext-install -j$(nproc) bcmath
-RUN docker-php-ext-install -j$(nproc) tokenizer
-RUN docker-php-ext-install -j$(nproc) calendar
-RUN docker-php-ext-install -j$(nproc) sockets
-
-# RUN apt-get install -y \
-#         libonig-dev \
-#     && docker-php-ext-install iconv mbstring
-
-RUN apt-get install -y \
-        libssl-dev \
-    && docker-php-ext-install -j$(nproc) ftp phar
-
-RUN apt-get install -y \
-        libicu-dev \
-    && docker-php-ext-install -j$(nproc) intl
-
-RUN apt-get install -y \
-        libmcrypt-dev \
-    && docker-php-ext-install -j$(nproc) session
-
-RUN apt-get install -y \
-        libxml2-dev \
-    && docker-php-ext-install -j$(nproc) simplexml xml xmlrpc
-
-RUN apt-get install -y \
-        libzip-dev \
-        zlib1g-dev \
-    && docker-php-ext-install -j$(nproc) zip
-
-RUN apt-get install -y \
-        libgmp-dev \
-    && docker-php-ext-install -j$(nproc) gmp
-
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Copy file cấu hình Nginx
+COPY ./nginx.conf /etc/nginx/sites-available/default
+
+# Copy source code PHP Proxy
+COPY ./php/proxy.php /var/www/html/proxy.php
+COPY ./php/proxy.sh /proxy.sh
+
+# Phân quyền thực thi script
+RUN chmod +x /proxy.sh
+RUN touch /var/log/php_proxy.log && chmod 777 /var/log/php_proxy.log
+
+# Mở cổng 3000
+EXPOSE 3000
+
+# Chạy proxy
+CMD ["/proxy.sh"]

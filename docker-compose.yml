@@ -1,14 +1,10 @@
 services:
-  web:
-    image: nginx:latest
+  proxy:
+    image: leduong/php:proxy
+    environment:
+      - PROXY_URL=
+      - DEBUG=false
     ports:
-      - '8080:80'
-    volumes:
-      - ./src:/var/www/html
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-    links:
-      - php-fpm
-  php-fpm:
-    image: leduong/php:7.4-fpm
+      - '8080:3000'
     volumes:
       - ./src:/var/www/html

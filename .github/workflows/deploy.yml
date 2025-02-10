@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - production
+      - proxy
 
 jobs:
   deploy:
@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: production
+        ref: proxy
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
@@ -36,4 +36,4 @@ jobs:
       with:
         push: true
         platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8
-        tags: leduong/php:7.4-fpm
+        tags: leduong/php:proxy
